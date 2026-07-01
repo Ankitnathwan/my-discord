@@ -22,6 +22,7 @@ model User {
 
   ownedServers Server[] @relation("ServerOwner")
   memberships ServerMember[]
+  messages Message[]
 }
 
 model Server{
@@ -59,10 +60,22 @@ model Channel{
   updatedAt DateTime @updatedAt
 
   server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages Message[]
 }
 
 enum ChannelType {
   TEXT
   VOICE
   ANNOUNCEMENT
+}
+
+model Message{
+  id String @id @default(cuid())
+  content String
+  userId String
+  channelId String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  channel Channel @relation(fields: [channelId], references: [id])
 }

@@ -3,19 +3,55 @@ import useServerStore from '../stores/serverStore'
 import { useNavigate } from 'react-router-dom'
 import useAuthStore from '../stores/authStore'
 import CreateServerModal from '../components/CreateServerModal'
+import socket from '../lib/socket'
+import api from '../lib/api'
 
 export default function ChannelsPage() {
   const [showCreateServer, setShowCreateServer] = useState(false)
+  const [message, setMessage] = useState('')
+  const [messages, setMessages] = useState([])
   const { servers, activeServer, activeChannel, fetchServers, setActiveServer, setActiveChannel } = useServerStore()
   useEffect(() => {
     fetchServers()
   }, [])
+
+  useEffect(() => {
+    if (!activeChannel) return
+    setMessages([])
+
+    // fetch existing messages
+    api.get(`/messages/${activeChannel.id}`)
+      .then(({ data }) => setMessages(data))
+      .catch(console.error)
+
+    socket.emit('join_channel', activeChannel.id)
+
+    socket.on('new_message', (message) => {
+      setMessages((prev) => [...prev, message])
+    })
+
+    return () => {
+      socket.off('new_message')
+    }
+  }, [activeChannel])
 
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const handleLogout = () => {
     logout()
     navigate('/login')
+  }
+
+  const handleSendMessage = () => {
+    if (!message.trim()) return
+
+    socket.emit('send_message', {
+      channelId: activeChannel.id,
+      content: message,
+      userId: user.id
+    })
+
+    setMessage('')
   }
 
   return (
@@ -79,15 +115,58 @@ export default function ChannelsPage() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 bg-gray-700 flex items-center justify-center">
-        <p className="text-gray-400">
-          {activeChannel ? `# ${activeChannel.name}` : 'Select a channel'}
-        </p>
+      <div className="flex-1 bg-gray-700 flex flex-col">
+        {/* Channel header */}
+        <div className="p-4 border-b border-gray-600">
+          <p className="text-white font-bold">
+            {activeChannel ? `# ${activeChannel.name}` : 'Select a channel'}
+          </p>
+        </div>
+
+        {/* Messages area */}
+        <div className="flex-1 p-4 overflow-y-auto">
+          {messages.length === 0 ? (
+            <p className="text-gray-400 text-sm">No messages yet</p>
+          ) : (
+            messages.map((msg) => (
+              <div key={msg.id} className="mb-3">
+                <span className="text-white text-sm font-medium">{msg.user.displayName}</span>
+                <span className="text-gray-400 text-xs ml-2">@{msg.user.username}</span>
+                <p className="text-gray-300 text-sm">{msg.content}</p>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Message input */}
+        {activeChannel && (
+          <div className="p-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSendMessage()
+                }}
+                placeholder={`Message #${activeChannel.name}`}
+                className="flex-1 bg-gray-600 text-white rounded px-4 py-2 text-sm focus:outline-none"
+              />
+              <button
+                onClick={handleSendMessage}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showCreateServer && (
         <CreateServerModal onClose={() => setShowCreateServer(false)} />
       )}
+
     </div>
   )
 }
