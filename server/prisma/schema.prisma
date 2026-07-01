@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  displayName  String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ownedServers Server[] @relation("ServerOwner")
+  memberships ServerMember[]
+}
+
+model Server{
+  id           String @id @default(cuid())
+  name         String
+  description  String?
+  ownerId      String
+  inviteCode   String @unique @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  owner User @relation("ServerOwner", fields: [ownerId], references: [id])
+  members ServerMember[]
+  channels Channel[]
+}
+
+model ServerMember{
+  userId    String
+  serverId  String
+  joinedAt  DateTime @default(now())
+
+  @@id([userId, serverId])
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+}
+
+model Channel{
+  id String @id @default(cuid())
+  name String
+  type ChannelType @default(TEXT)
+  topic String?
+  serverId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+}
+
+enum ChannelType {
+  TEXT
+  VOICE
+  ANNOUNCEMENT
+}
