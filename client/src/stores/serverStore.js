@@ -9,11 +9,11 @@ const useServerStore = create((set, get) => ({
     error: null,
 
     fetchServers: async () => {
-        set({loading:true});
-        try{
-            const {data} = await api.get('/servers');
+        set({ loading: true });
+        try {
+            const { data } = await api.get('/servers');
             set({ servers: data, loading: false });
-        }catch(err){
+        } catch (err) {
             set({ error: err.message, loading: false });
         }
     },
@@ -26,10 +26,31 @@ const useServerStore = create((set, get) => ({
     setActiveChannel: (channel) => set({ activeChannel: channel }),
 
     createServer: async (formData) => {
-        const {data} = await api.post('/servers', formData);
-        set((state) => ({ servers: [...state.servers, data]}));
+        const { data } = await api.post('/servers', formData);
+        set((state) => ({ servers: [...state.servers, data] }));
         return data;
-    }
+    },
+
+    createChannel: async (serverId, name, type) => {
+        const { data } = await api.post('/channels', { name, type, serverId });
+        set((state) => ({
+            servers: state.servers.map((s) =>
+                s.id === serverId ? { ...s, channels: [...s.channels, data] } : s
+            ),
+            activeServer:
+                state.activeServer?.id === serverId
+                    ? { ...state.activeServer, channels: [...state.activeServer.channels, data] }
+                    : state.activeServer,
+        }));
+        return data;
+    },
+
+    joinServer: async (inviteCode) => {
+    const { data } = await api.post(`/servers/join/${inviteCode}`);
+    await get().fetchServers();
+    return data;
+    },
+
 }));
 
 export default useServerStore

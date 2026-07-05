@@ -3,11 +3,15 @@ import useServerStore from '../stores/serverStore'
 import { useNavigate } from 'react-router-dom'
 import useAuthStore from '../stores/authStore'
 import CreateServerModal from '../components/CreateServerModal'
+import CreateChannelModal from '../components/CreateChannelModal'
+import JoinServerModal from '../components/JoinServerModal'
 import socket from '../lib/socket'
 import api from '../lib/api'
 
 export default function ChannelsPage() {
   const [showCreateServer, setShowCreateServer] = useState(false)
+  const [showCreateChannel, setShowCreateChannel] = useState(false)
+  const [showJoinServer, setShowJoinServer] = useState(false)
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([])
   const { servers, activeServer, activeChannel, fetchServers, setActiveServer, setActiveChannel } = useServerStore()
@@ -74,6 +78,14 @@ export default function ChannelsPage() {
         >
           +
         </button>
+
+        <button
+          onClick={() => setShowJoinServer(true)}
+          className="w-10 h-10 rounded-full bg-gray-700 hover:bg-green-600 flex items-center justify-center text-white font-bold hover:text-white text-xs transition-colors"
+        >
+          Join Server
+        </button>
+
       </div>
 
       {/* Channel sidebar */}
@@ -91,7 +103,7 @@ export default function ChannelsPage() {
             <button
               key={channel.id}
               onClick={() => setActiveChannel(channel)}
-              className={`w-full text-left px-2 py-1.5 rounded text-sm ${activeChannel?.id === channel.id
+              className={`w-full text-left px-2 py-1.5rounded text-sm ${activeChannel?.id === channel.id
                 ? 'bg-gray-700 text-white'
                 : 'text-gray-300 hover:bg-gray-700'
                 }`}
@@ -99,6 +111,12 @@ export default function ChannelsPage() {
               # {channel.name}
             </button>
           ))}
+          <button
+          onClick={() => setShowCreateChannel(true)}
+          className="w-10 h-10 rounded-full mt-1 bg-gray-700 hover:bg-green-600 flex items-center justify-center text-green-500 hover:text-white text-2xl transition-colors"
+        >
+          +
+        </button>
         </div>
         <div className="mt-auto p-3 bg-gray-900 flex items-center justify-between">
           <div>
@@ -165,6 +183,14 @@ export default function ChannelsPage() {
 
       {showCreateServer && (
         <CreateServerModal onClose={() => setShowCreateServer(false)} />
+      )}
+
+      {showCreateChannel && (
+        <CreateChannelModal onClose={() => setShowCreateChannel(false)} />
+      )}
+
+      {showJoinServer && (
+        <JoinServerModal onClose={() => setShowJoinServer(false)} />
       )}
 
     </div>
