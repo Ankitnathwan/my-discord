@@ -1,0 +1,6 @@
+[build]
+builder = "nixpacks"
+buildCommand = "cd server && npm install && npx prisma generate"
+
+[deploy]
+startCommand = "cd server && node src/index.js"
