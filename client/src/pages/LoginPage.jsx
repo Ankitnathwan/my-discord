@@ -2,6 +2,7 @@ import { useState } from 'react';
 import api from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import useAuthStore from '../stores/authStore'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function LoginPage() {
     const [form, setForm] = useState({ login: '', password: '' })
