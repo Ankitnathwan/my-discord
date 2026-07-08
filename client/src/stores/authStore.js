@@ -24,7 +24,16 @@ const useAuthStore = create((set) => ({
   logout: () => {
     localStorage.clear()
     set({ user: null })
-  }
+  },
+
+  register: async (formData) => {
+  const { data } = await api.post('/auth/register', formData)
+  localStorage.setItem('accessToken', data.accessToken)
+  localStorage.setItem('refreshToken', data.refreshToken)
+  set({ user: data.user })
+  return data
+  },
+  
 }))
 
 export default useAuthStore

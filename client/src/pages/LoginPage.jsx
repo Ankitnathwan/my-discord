@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import useAuthStore from '../stores/authStore'
 
 export default function LoginPage() {
-    const [form, setForm] = useState({login:'', password:''})
+    const [form, setForm] = useState({ login: '', password: '' })
     const navigate = useNavigate()
     const [error, setError] = useState('')
     const { setUser } = useAuthStore()
@@ -12,18 +12,18 @@ export default function LoginPage() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setError('')
-        try{
-            const { data } =  await api.post('/auth/login', form)
+        try {
+            const { data } = await api.post('/auth/login', form)
             localStorage.setItem('accessToken', data.accessToken)
             localStorage.setItem('refreshToken', data.refreshToken)
             setUser(data.user)
             navigate('/channels')
-        }catch(err){
+        } catch (err) {
             setError(err.response?.data?.error || 'Login failed')
         }
     }
-    
-    return(
+
+    return (
         <div className='min-h-screen bg-gray-900 flex items-center justify-center'>
             <div className="bg-gray-800 p-8 rounded-lg w-full max-w-md">
                 <h1 className="text-2xl font-bold text-white mb-6">Welcome back!</h1>
@@ -35,7 +35,7 @@ export default function LoginPage() {
                         <input
                             type='text'
                             value={form.login}
-                            onChange={(e) => setForm({ ...form, login: e.target.value})}
+                            onChange={(e) => setForm({ ...form, login: e.target.value })}
                             className="w-full bg-gray-900 text-white rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                     </div>
@@ -54,6 +54,10 @@ export default function LoginPage() {
                         Log In
                     </button>
                 </form>
+                <p className="text-gray-400 text-sm mt-4">
+                    Need an account?{' '}
+                    <Link to="/register" className="text-indigo-400 hover:underline">Register</Link>
+                </p>
             </div>
         </div>
     )
