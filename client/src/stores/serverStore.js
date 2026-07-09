@@ -46,9 +46,16 @@ const useServerStore = create((set, get) => ({
     },
 
     joinServer: async (inviteCode) => {
-    const { data } = await api.post(`/servers/join/${inviteCode}`);
-    await get().fetchServers();
-    return data;
+        const { data } = await api.post(`/servers/join/${inviteCode}`);
+
+        await get().fetchServers();
+
+        const server = get().servers.find((s) => s.id === data.serverId);
+        if (server) {
+            get().setActiveServer(server);
+        }
+
+        return data;
     },
 
 }));
