@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import api from '../lib/api'
 import { Link, useNavigate } from 'react-router-dom'
 import useAuthStore from '../stores/authStore'
 
@@ -7,17 +6,14 @@ export default function LoginPage() {
     const [form, setForm] = useState({ login: '', password: '' })
     const navigate = useNavigate()
     const [error, setError] = useState('')
-    const { setUser } = useAuthStore()
+    const { login } = useAuthStore();
 
     const handleSubmit = async (e) => {
         e.preventDefault()
         setError('')
         try {
-            const { data } = await api.post('/auth/login', form)
-            localStorage.setItem('accessToken', data.accessToken)
-            localStorage.setItem('refreshToken', data.refreshToken)
-            setUser(data.user)
-            navigate('/channels')
+            await login(form);
+            navigate('/channels');
         } catch (err) {
             setError(err.response?.data?.error || 'Login failed')
         }

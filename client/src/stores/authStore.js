@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import api from '../lib/api'
+import * as authService from "../services/authService";
 
 const useAuthStore = create((set) => ({
   user: null,
@@ -12,8 +12,8 @@ const useAuthStore = create((set) => ({
       return
     }
     try {
-      const { data } = await api.get('/auth/me')
-      set({ user: data.user, loading: false })
+      const data = await authService.getMe();
+      set({ user: data.user, loading: false });
     } catch {
       localStorage.clear()
       set({ loading: false })
@@ -27,13 +27,21 @@ const useAuthStore = create((set) => ({
   },
 
   register: async (formData) => {
-  const { data } = await api.post('/auth/register', formData)
-  localStorage.setItem('accessToken', data.accessToken)
-  localStorage.setItem('refreshToken', data.refreshToken)
-  set({ user: data.user })
-  return data
+    const data = await authService.register(formData);
+    localStorage.setItem('accessToken', data.accessToken)
+    localStorage.setItem('refreshToken', data.refreshToken)
+    set({ user: data.user })
+    return data
   },
-  
+
+  login: async (credentials) => {
+    const data = await authService.login(credentials);
+    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("refreshToken", data.refreshToken);
+    set({ user: data.user });
+    return data;
+  },
+
 }))
 
 export default useAuthStore
