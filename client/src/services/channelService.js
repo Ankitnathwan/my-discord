@@ -14,3 +14,8 @@ export const getChannel = async (channelId) => {
   const { data } = await api.get(`/channels/${channelId}`);
   return data;
 };
+
+export const renameChannel = async (channelId, name) => {
+  const { data } = await api.patch(`/channels/${channelId}`, { name, });
+  return data;
+};

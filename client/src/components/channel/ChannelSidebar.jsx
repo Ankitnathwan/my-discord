@@ -1,3 +1,7 @@
+import { useState } from "react";
+import RenameChannelModal from "../modals/RenameChannelModal";
+import ServerHeader from "../server/ServerHeader";
+
 export default function ChannelSidebar({
   activeServer,
   activeChannel,
@@ -6,19 +10,20 @@ export default function ChannelSidebar({
   user,
   onCreateChannel,
   onDeleteChannel,
+  onDeleteServer,
   onLogout,
+  onLeaveServer,
 }) {
+  const [editingChannel, setEditingChannel] = useState(null);
+
   return (
     <div className="w-60 bg-gray-800 flex flex-col">
-      <div className="p-4 font-bold text-white border-b border-gray-900">
-        <p>{activeServer ? activeServer.name : "Select a server"}</p>
-
-        {activeServer && (
-          <p className="text-xs text-gray-400">
-            {activeServer.inviteCode}
-          </p>
-        )}
-      </div>
+      <ServerHeader
+        activeServer={activeServer}
+        isOwner={isOwner}
+        onDeleteServer={onDeleteServer}
+        onLeaveServer={onLeaveServer}
+      />
 
       <div className="flex-1 p-2">
         <p className="text-gray-400 text-xs uppercase font-bold px-2 mb-1">
@@ -32,22 +37,32 @@ export default function ChannelSidebar({
           >
             <button
               onClick={() => setActiveChannel(channel)}
-              className={`flex-1 text-left px-2 py-1.5 rounded text-sm ${
-                activeChannel?.id === channel.id
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-300 hover:bg-gray-700"
-              }`}
+              className={`flex-1 text-left px-2 py-1.5 rounded text-sm ${activeChannel?.id === channel.id
+                ? "bg-gray-700 text-white"
+                : "text-gray-300 hover:bg-gray-700"
+                }`}
             >
               # {channel.name}
             </button>
 
             {isOwner && (
-              <button
-                onClick={() => onDeleteChannel(channel.id)}
-                className="hidden group-hover:block px-2 text-red-400 hover:text-red-300"
-              >
-                🗑
-              </button>
+              <div className="hidden group-hover:flex gap-1">
+
+                <button
+                  onClick={() => setEditingChannel(channel)}
+                >
+                  ✏️
+                </button>
+
+                <button
+                  onClick={() => onDeleteChannel(channel.id)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 16 16">
+<circle cx="8" cy="8" r="8" fill="#fe3155"></circle><polygon fill="#fff" points="11.536,10.121 9.414,8 11.536,5.879 10.121,4.464 8,6.586 5.879,4.464 4.464,5.879 6.586,8 4.464,10.121 5.879,11.536 8,9.414 10.121,11.536"></polygon>
+</svg>
+                </button>
+
+              </div>
             )}
           </div>
         ))}
@@ -77,6 +92,14 @@ export default function ChannelSidebar({
           Logout
         </button>
       </div>
+
+      {editingChannel && (
+        <RenameChannelModal
+          channel={editingChannel}
+          onClose={() => setEditingChannel(null)}
+        />
+      )}
+
     </div>
   );
 }

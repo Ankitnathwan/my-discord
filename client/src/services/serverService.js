@@ -19,3 +19,8 @@ export const deleteServer = async (serverId) => {
   const { data } = await api.delete(`/servers/${serverId}`);
   return data;
 };
+
+export const leaveServer = async (serverId) => {
+  const { data } = await api.delete(`/servers/${serverId}/leave`);
+  return data;
+};

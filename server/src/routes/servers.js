@@ -90,20 +90,75 @@ router.get('/:id', async (req, res, next) => {
     } catch (err) {
         next(err)
     }
-})
+});
 
-router.delete('/:id', async (req, res, next) => {
+router.delete("/:id/leave", async (req, res, next) => {
     try {
-        const server = await prisma.server.findUnique({ where: { id: req.params.id } });
-        if (!server) return res.status(404).json({ error: 'Server not found' })
-        if (server.ownerId !== req.user.id) return res.status(403).json({ error: 'Forbidden: Not the owner' });
+        const server = await prisma.server.findUnique({
+            where: {
+                id: req.params.id,
+            },
+        });
+        if (!server) {
+            return res.status(404).json({
+                error: "Server not found",
+            });
+        }
+        if (server.ownerId === req.user.id) {
+            return res.status(400).json({
+                error: "Server owner cannot leave the server",
+            });
+        }
+        await prisma.serverMember.delete({
+            where: {
+                userId_serverId: {
+                    userId: req.user.id,
+                    serverId: req.params.id,
+                },
+            },
+        });
 
-        await prisma.server.delete({ where: { id: req.params.id } });
-        res.json({ message: 'Server deleted' });
+        res.json({
+            message: "Left server",
+        });
     } catch (err) {
-        next(err)
+        next(err);
     }
-})
+});
+
+router.delete("/:id", async (req, res, next) => {
+    try {
+        const server = await prisma.server.findUnique({
+            where: {
+                id: req.params.id,
+            },
+        });
+
+        if (!server) {
+            return res.status(404).json({
+                error: "Server not found",
+            });
+        }
+
+        if (server.ownerId !== req.user.id) {
+            return res.status(403).json({
+                error: "Only the owner can delete this server",
+            });
+        }
+
+        await prisma.server.delete({
+            where: {
+                id: req.params.id,
+            },
+        });
+
+        res.json({
+            message: "Server deleted",
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 
 router.post('/join/:inviteCode', async (req, res, next) => {
     try {
@@ -130,5 +185,6 @@ router.post('/join/:inviteCode', async (req, res, next) => {
     } catch (err) {
         next(err)
     }
-})
- module.exports = router
+});
+
+module.exports = router

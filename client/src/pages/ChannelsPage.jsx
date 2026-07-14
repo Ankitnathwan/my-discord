@@ -17,8 +17,8 @@ export default function ChannelsPage() {
   const [showCreateChannel, setShowCreateChannel] = useState(false)
   const [showJoinServer, setShowJoinServer] = useState(false)
   const [message, setMessage] = useState('')
-  
-  const { servers, activeServer, activeChannel, fetchServers, setActiveServer, setActiveChannel, deleteChannel, } = useServerStore();
+
+  const { servers, activeServer, activeChannel, fetchServers, setActiveServer, setActiveChannel, deleteChannel, deleteServer, leaveServer, } = useServerStore();
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const { messages, setMessages } = useMessages(activeChannel);
@@ -36,16 +36,16 @@ export default function ChannelsPage() {
   }
 
   const handleSendMessage = () => {
-  if (!message.trim()) return;
+    if (!message.trim()) return;
 
-  socket.emit("send_message", {
-    channelId: activeChannel.id,
-    content: message,
-    userId: user.id,
-  });
+    socket.emit("send_message", {
+      channelId: activeChannel.id,
+      content: message,
+      userId: user.id,
+    });
 
-  setMessage("");
-};
+    setMessage("");
+  };
 
   const handleDeleteChannel = async (channelId) => {
     if (!window.confirm("Delete this channel?")) return;
@@ -54,6 +54,39 @@ export default function ChannelsPage() {
       await deleteChannel(channelId);
     } catch (err) {
       alert(err.response?.data?.error || "Failed to delete channel");
+    }
+  };
+
+  const handleDeleteServer = async () => {
+    if (!activeServer) return;
+
+    if (!window.confirm(`Delete "${activeServer.name}"?`)) return;
+
+    try {
+      await deleteServer(activeServer.id);
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to delete server");
+    }
+  };
+
+  const handleLeaveServer = async () => {
+    if (!activeServer) return;
+
+    if (
+      !window.confirm(
+        `Leave "${activeServer.name}"?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await leaveServer(activeServer.id);
+    } catch (err) {
+      alert(
+        err.response?.data?.error ||
+        "Failed to leave server"
+      );
     }
   };
 
@@ -77,6 +110,8 @@ export default function ChannelsPage() {
         onCreateChannel={() => setShowCreateChannel(true)}
         onDeleteChannel={handleDeleteChannel}
         onLogout={handleLogout}
+        onDeleteServer={handleDeleteServer}
+        onLeaveServer={handleLeaveServer}
       />
 
       <ChatArea

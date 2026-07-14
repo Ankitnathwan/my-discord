@@ -109,6 +109,32 @@ const useServerStore = create((set, get) => ({
         });
     },
 
+    renameChannel: async (channelId, name) => {
+        await channelService.renameChannel(channelId, name);
+        await get().fetchServers();
+    },
+
+    leaveServer: async (serverId) => {
+        await serverService.leaveServer(serverId);
+
+        const updatedServers = get().servers.filter(
+            (s) => s.id !== serverId
+        );
+
+        set({
+            servers: updatedServers,
+            activeServer:
+                get().activeServer?.id === serverId
+                    ? updatedServers[0] || null
+                    : get().activeServer,
+
+            activeChannel:
+                get().activeServer?.id === serverId
+                    ? updatedServers[0]?.channels?.[0] || null
+                    : get().activeChannel,
+        });
+    },
+
 }));
 
 export default useServerStore
