@@ -42,6 +42,14 @@ io.on('connection', (socket) => {
     socket.join(channelId);
   })
 
+  socket.on("typing_start", ({ channelId, user }) => {
+    socket.to(channelId).emit("user_typing", user);
+  });
+
+  socket.on("typing_stop", ({ channelId, user }) => {
+    socket.to(channelId).emit("user_stop_typing", user);
+  });
+
   socket.on('send_message', async ({ channelId, content, userId }) => {
     try {
       const message = await prisma.message.create({

@@ -4,6 +4,8 @@ export default function ChatArea({
   message,
   setMessage,
   handleSendMessage,
+  handleTyping,
+  typingUsers,
 }) {
   return (
     <div className="flex-1 bg-gray-700 flex flex-col">
@@ -33,13 +35,23 @@ export default function ChatArea({
         )}
       </div>
 
+      {typingUsers.length > 0 && (
+        <p className="px-4 pb-2 text-sm text-gray-400 italic">
+          {typingUsers.join(", ")}{" "}
+          {typingUsers.length === 1
+            ? "is"
+            : "are"}{" "}
+          typing...
+        </p>
+      )}
+
       {activeChannel && (
         <div className="p-4">
           <div className="flex gap-2">
             <input
               type="text"
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={handleTyping}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSendMessage();
               }}

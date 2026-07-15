@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import useServerStore from '../stores/serverStore'
 import { useNavigate } from 'react-router-dom'
 import useAuthStore from '../stores/authStore'
@@ -17,6 +17,8 @@ export default function ChannelsPage() {
   const [showCreateChannel, setShowCreateChannel] = useState(false)
   const [showJoinServer, setShowJoinServer] = useState(false)
   const [message, setMessage] = useState('')
+  const [typingUsers, setTypingUsers] = useState([]);
+  const typingTimeout = useRef(null);
 
   const { servers, activeServer, activeChannel, fetchServers, setActiveServer, setActiveChannel, deleteChannel, deleteServer, leaveServer, } = useServerStore();
   const { user, logout } = useAuthStore()
@@ -28,7 +30,7 @@ export default function ChannelsPage() {
     fetchServers()
   }, [])
 
-  useSocket(activeChannel, setMessages);
+  useSocket(activeChannel, setMessages, setTypingUsers);
 
   const handleLogout = () => {
     logout()
@@ -44,7 +46,41 @@ export default function ChannelsPage() {
       userId: user.id,
     });
 
+    socket.emit("typing_stop", {
+      channelId: activeChannel.id,
+      user: user.displayName,
+    });
+
+    clearTimeout(typingTimeout.current);
+
     setMessage("");
+  };
+
+  const handleTyping = (e) => {
+    const value = e.target.value;
+    setMessage(value);
+
+    if (!value.trim()) {
+      socket.emit("typing_stop", {
+        channelId: activeChannel.id,
+        user: user.displayName,
+      });
+      return;
+    }
+
+    socket.emit("typing_start", {
+      channelId: activeChannel.id,
+      user: user.displayName,
+    });
+
+    clearTimeout(typingTimeout.current);
+
+    typingTimeout.current = setTimeout(() => {
+      socket.emit("typing_stop", {
+        channelId: activeChannel.id,
+        user: user.displayName,
+      });
+    }, 1000);
   };
 
   const handleDeleteChannel = async (channelId) => {
@@ -120,6 +156,8 @@ export default function ChannelsPage() {
         message={message}
         setMessage={setMessage}
         handleSendMessage={handleSendMessage}
+        typingUsers={typingUsers}
+        handleTyping={handleTyping}
       />
 
       {showCreateServer && (
