@@ -35,12 +35,26 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
 })
 
-io.on('connection', (socket) => {
-  console.log('User connected: ', socket.id)
+const onlineUsers = new Map();
 
+io.on('connection', (socket) => {
   socket.on('join_channel', (channelId) => {
     socket.join(channelId);
-  })
+  });
+
+  socket.on("user_online", (userId) => {
+    if (!onlineUsers.has(userId)) {
+      onlineUsers.set(userId, new Set());
+    }
+
+    onlineUsers.get(userId).add(socket.id);
+
+    io.emit("online_users", [...onlineUsers.keys()]);
+  });
+
+  socket.on("get_online_users", () => {
+    socket.emit("online_users", [...onlineUsers.keys()]);
+  });
 
   socket.on("typing_start", ({ channelId, user }) => {
     socket.to(channelId).emit("user_typing", user);
@@ -64,11 +78,20 @@ io.on('connection', (socket) => {
     } catch (err) {
       console.error('Message error:', err)
     }
-  })
+  });
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected: ', socket.id)
-  })
+  socket.on("disconnect", () => {
+    for (const [userId, sockets] of onlineUsers.entries()) {
+      sockets.delete(socket.id);
+
+      if (sockets.size === 0) {
+        onlineUsers.delete(userId);
+      }
+    }
+
+    io.emit("online_users", [...onlineUsers.keys()]);
+  });
+
 })
 
 const PORT = process.env.PORT || 4000

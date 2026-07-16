@@ -18,6 +18,7 @@ export default function ChannelsPage() {
   const [showJoinServer, setShowJoinServer] = useState(false)
   const [message, setMessage] = useState('')
   const [typingUsers, setTypingUsers] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const typingTimeout = useRef(null);
 
   const { servers, activeServer, activeChannel, fetchServers, setActiveServer, setActiveChannel, deleteChannel, deleteServer, leaveServer, } = useServerStore();
@@ -30,7 +31,7 @@ export default function ChannelsPage() {
     fetchServers()
   }, [])
 
-  useSocket(activeChannel, setMessages, setTypingUsers);
+  useSocket(activeChannel, setMessages, setTypingUsers, setOnlineUsers);
 
   const handleLogout = () => {
     logout()
@@ -148,6 +149,7 @@ export default function ChannelsPage() {
         onLogout={handleLogout}
         onDeleteServer={handleDeleteServer}
         onLeaveServer={handleLeaveServer}
+        onlineUsers={onlineUsers}
       />
 
       <ChatArea

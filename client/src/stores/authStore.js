@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import * as authService from "../services/authService";
+import socket from "../lib/socket";
 
 const useAuthStore = create((set) => ({
   user: null,
@@ -22,6 +23,8 @@ const useAuthStore = create((set) => ({
 
   setUser: (user) => set({ user }),
   logout: () => {
+    socket.disconnect();
+    
     localStorage.clear()
     set({ user: null })
   },

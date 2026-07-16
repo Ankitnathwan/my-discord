@@ -55,9 +55,44 @@ router.get('/', async (req, res, next) => {
             },
             include: {
                 channels: true,
+                members: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                displayName: true,
+                            },
+                        },
+                    },
+                },
             },
         });
-        res.json(servers);
+        const serversWithMembers = await Promise.all(
+            servers.map(async (server) => {
+                const owner = await prisma.user.findUnique({
+                    where: {
+                        id: server.ownerId,
+                    },
+                    select: {
+                        id: true,
+                        username: true,
+                        displayName: true,
+                    },
+                });
+
+                return {
+                    ...server,
+                    allMembers: [
+                        owner,
+                        ...server.members.map((m) => m.user),
+                    ],
+                };
+            })
+        );
+
+        res.json(serversWithMembers);
+        
     } catch (err) {
         next(err);
     }
