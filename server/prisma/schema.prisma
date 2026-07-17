@@ -72,6 +72,7 @@ enum ChannelType {
 model Message{
   id String @id @default(cuid())
   content String
+  imageUrl  String?
   userId String
   channelId String
   createdAt DateTime @default(now())

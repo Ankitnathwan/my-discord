@@ -8,19 +8,20 @@ const messageRoutes = require('./routes/messages')
 const http = require('http')
 const { Server } = require('socket.io')
 const prisma = require('./config/prisma')
+const uploadRoutes = require("./routes/uploads");
 
 const app = express()
 const server = http.createServer(app)
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: "http://localhost:5173",
     methods: ['GET', 'POST']
   }
 })
 
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: "http://localhost:5173",
   credentials: true,
 }))
 
@@ -30,6 +31,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/servers', serverRoutes)
 app.use('/api/channels', channelRoutes)
 app.use('/api/messages', messageRoutes)
+app.use("/api/uploads", uploadRoutes)
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
