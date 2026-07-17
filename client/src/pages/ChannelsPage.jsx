@@ -2,15 +2,16 @@ import { useEffect, useState, useRef } from 'react'
 import useServerStore from '../stores/serverStore'
 import { useNavigate } from 'react-router-dom'
 import useAuthStore from '../stores/authStore'
-import CreateServerModal from '../components/CreateServerModal'
-import CreateChannelModal from '../components/CreateChannelModal'
-import JoinServerModal from '../components/JoinServerModal'
+import CreateServerModal from '../components/modals/CreateServerModal'
+import CreateChannelModal from '../components/modals/CreateChannelModal'
+import JoinServerModal from '../components/modals/JoinServerModal'
 import ServerSidebar from "../components/server/ServerSidebar"
 import ChannelSidebar from '../components/channel/ChannelSidebar'
 import ChatArea from '../components/chat/ChatArea'
 import useMessages from "../hooks/useMessages"
 import useSocket from "../hooks/useSocket"
 import socket from "../lib/socket";
+import { uploadImage } from "../services/uploadService";
 
 export default function ChannelsPage() {
   const [showCreateServer, setShowCreateServer] = useState(false)
@@ -25,6 +26,7 @@ export default function ChannelsPage() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const { messages, setMessages } = useMessages(activeChannel);
+  const [selectedImage, setSelectedImage] = useState(null);
   const isOwner = activeServer?.ownerId === user.id;
 
   useEffect(() => {
@@ -38,13 +40,20 @@ export default function ChannelsPage() {
     navigate('/login')
   }
 
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
+  const handleSendMessage = async () => {
+    if (!activeChannel) return;
+    if (!message.trim() && !selectedImage) return;
+    let imageUrl = null;
 
+    if (selectedImage) {
+      imageUrl = await uploadImage(selectedImage);
+    }
+    
     socket.emit("send_message", {
       channelId: activeChannel.id,
       content: message,
       userId: user.id,
+      imageUrl,
     });
 
     socket.emit("typing_stop", {
@@ -55,6 +64,7 @@ export default function ChannelsPage() {
     clearTimeout(typingTimeout.current);
 
     setMessage("");
+    setSelectedImage(null);
   };
 
   const handleTyping = (e) => {
@@ -160,6 +170,8 @@ export default function ChannelsPage() {
         handleSendMessage={handleSendMessage}
         typingUsers={typingUsers}
         handleTyping={handleTyping}
+        selectedImage={selectedImage}
+        setSelectedImage={setSelectedImage}
       />
 
       {showCreateServer && (

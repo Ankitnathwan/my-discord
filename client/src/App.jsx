@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import { useEffect } from 'react'
 import useAuthStore from './stores/authStore'
-import ProtectedRoute from './components/ProtectedRoute'
+import ProtectedRoute from './components/modals/ProtectedRoute'
 import ChannelsPage from './pages/ChannelsPage'
 import RegisterPage from './pages/RegisterPage'
 

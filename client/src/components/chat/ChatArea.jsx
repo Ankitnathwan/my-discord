@@ -1,3 +1,5 @@
+import { useEffect, useLayoutEffect, useRef } from "react";
+
 export default function ChatArea({
   activeChannel,
   messages,
@@ -6,7 +8,21 @@ export default function ChatArea({
   handleSendMessage,
   handleTyping,
   typingUsers,
+  selectedImage,
+  setSelectedImage,
 }) {
+  const inputRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+
+  const previousChannel = useRef(null);
+
+  useLayoutEffect(() => {
+  const container = messagesContainerRef.current;
+  if (!container) return;
+
+  container.scrollTop = container.scrollHeight;
+}, [messages, activeChannel?.id]);
+
   return (
     <div className="flex-1 bg-gray-700 flex flex-col">
       <div className="p-4 border-b border-gray-600">
@@ -15,7 +31,7 @@ export default function ChatArea({
         </p>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto">
+      <div ref={messagesContainerRef} className="flex-1 p-4 overflow-y-auto">
         {messages.length === 0 ? (
           <p className="text-gray-400 text-sm">No messages yet</p>
         ) : (
@@ -29,7 +45,18 @@ export default function ChatArea({
                 @{msg.user.username}
               </span>
 
-              <p className="text-gray-300 text-sm">{msg.content}</p>
+              {msg.content && (
+                <p className="text-gray-300 text-sm">{msg.content}</p>
+              )}
+
+              {msg.imageUrl && (
+                <img
+                  src={msg.imageUrl}
+                  alt="attachment"
+                  className="mt-2 rounded-lg max-w-sm cursor-pointer"
+                />
+              )}
+
             </div>
           ))
         )}
@@ -45,10 +72,41 @@ export default function ChatArea({
         </p>
       )}
 
+      <input
+        id="image-upload"
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files[0];
+          if (file) {
+            setSelectedImage(file);
+          }
+          e.target.value = "";
+          inputRef.current?.focus();
+        }}
+      />
+
       {activeChannel && (
         <div className="p-4">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.currentTarget.blur();
+                document.getElementById("image-upload").click();
+              }}
+              className="bg-gray-600 hover:bg-gray-500 text-white px-3 rounded"
+            >
+              📷
+            </button>
+            {selectedImage && (
+              <div className="mb-2 text-sm text-gray-300">
+                {selectedImage.name}
+              </div>
+            )}
             <input
+              ref={inputRef}
               type="text"
               value={message}
               onChange={handleTyping}

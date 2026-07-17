@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import useServerStore from '../stores/serverStore'
+import useServerStore from '../../stores/serverStore'
 
 export default function CreateServerModal({ onClose }) {
   const [name, setName] = useState('');

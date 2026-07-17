@@ -66,19 +66,33 @@ io.on('connection', (socket) => {
     socket.to(channelId).emit("user_stop_typing", user);
   });
 
-  socket.on('send_message', async ({ channelId, content, userId }) => {
+  socket.on("send_message", async ({ channelId, content, imageUrl, userId }) => {
     try {
+      if (!content?.trim() && !imageUrl) {
+        return;
+      }
+
       const message = await prisma.message.create({
-        data: { channelId, userId, content },
+        data: {
+          channelId,
+          userId,
+          content: content?.trim() || "",
+          imageUrl,
+        },
         include: {
           user: {
-            select: { id: true, username: true, displayName: true }
-          }
-        }
-      })
-      io.to(channelId).emit('new_message', message)
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+            },
+          },
+        },
+      });
+
+      io.to(channelId).emit("new_message", message);
     } catch (err) {
-      console.error('Message error:', err)
+      console.error("Message error:", err);
     }
   });
 
