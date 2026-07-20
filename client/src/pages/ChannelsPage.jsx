@@ -27,6 +27,7 @@ export default function ChannelsPage() {
   const navigate = useNavigate()
   const { messages, setMessages } = useMessages(activeChannel);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
   const isOwner = activeServer?.ownerId === user.id;
 
   useEffect(() => {
@@ -54,6 +55,7 @@ export default function ChannelsPage() {
       content: message,
       userId: user.id,
       imageUrl,
+      replyToId: replyingTo?.id ?? null,
     });
 
     socket.emit("typing_stop", {
@@ -65,6 +67,7 @@ export default function ChannelsPage() {
 
     setMessage("");
     setSelectedImage(null);
+    setReplyingTo(null);
   };
 
   const handleTyping = (e) => {
@@ -172,6 +175,8 @@ export default function ChannelsPage() {
         handleTyping={handleTyping}
         selectedImage={selectedImage}
         setSelectedImage={setSelectedImage}
+        replyingTo={replyingTo}
+        setReplyingTo={setReplyingTo}
       />
 
       {showCreateServer && (

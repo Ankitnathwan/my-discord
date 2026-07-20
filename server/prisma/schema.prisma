@@ -77,6 +77,11 @@ model Message{
   channelId String
   createdAt DateTime @default(now())
 
+  replyToId String?
+
+  replyTo Message? @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies Message[] @relation("MessageReplies")
+
   user User @relation(fields: [userId], references: [id])
   channel Channel @relation(fields: [channelId], references: [id])
 }

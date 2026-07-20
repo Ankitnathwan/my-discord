@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
+import { Reply } from "lucide-react";
 
 export default function ChatArea({
   activeChannel,
@@ -10,6 +11,8 @@ export default function ChatArea({
   typingUsers,
   selectedImage,
   setSelectedImage,
+  replyingTo,
+  setReplyingTo,
 }) {
   const inputRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -17,11 +20,11 @@ export default function ChatArea({
   const previousChannel = useRef(null);
 
   useLayoutEffect(() => {
-  const container = messagesContainerRef.current;
-  if (!container) return;
+    const container = messagesContainerRef.current;
+    if (!container) return;
 
-  container.scrollTop = container.scrollHeight;
-}, [messages, activeChannel?.id]);
+    container.scrollTop = container.scrollHeight;
+  }, [messages, activeChannel?.id]);
 
   return (
     <div className="flex-1 bg-gray-700 flex flex-col">
@@ -36,7 +39,11 @@ export default function ChatArea({
           <p className="text-gray-400 text-sm">No messages yet</p>
         ) : (
           messages.map((msg) => (
-            <div key={msg.id} className="mb-3">
+            <div
+              id={`message-${msg.id}`}
+              key={msg.id}
+              className="group mb-3 rounded-md px-2 py-1 hover:bg-gray-650 transition-colors duration-300"
+            >
               <span className="text-white text-sm font-medium">
                 {msg.user.displayName}
               </span>
@@ -44,6 +51,45 @@ export default function ChatArea({
               <span className="text-gray-400 text-xs ml-2">
                 @{msg.user.username}
               </span>
+
+              <button
+                onClick={() => {
+                  setReplyingTo(msg);
+                  inputRef.current?.focus();
+                }}
+                className="ml-2 text-xs text-indigo-400 hover:text-indigo-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+              >
+                <Reply size={20} />
+              </button>
+
+              {msg.replyTo && (
+                <div
+                  onClick={() => {
+                    const el = document.getElementById(`message-${msg.replyTo.id}`);
+                    if (el) {
+                      el.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
+
+                      el.classList.add("bg-indigo-500/20");
+
+                      setTimeout(() => {
+                        el.classList.remove("bg-indigo-500/20");
+                      }, 1500);
+                    }
+                  }}
+                  className="mt-1 mb-2 border-l-2 border-gray-500 pl-3 hover:bg-gray-600/40 rounded cursor-pointer"
+                >
+                  <p className="text-xs text-indigo-400">
+                    Replying to {msg.replyTo.user.displayName}
+                  </p>
+
+                  <p className="text-xs text-gray-400 truncate">
+                    {msg.replyTo.content || "📷 Image"}
+                  </p>
+                </div>
+              )}
 
               {msg.content && (
                 <p className="text-gray-300 text-sm">{msg.content}</p>
@@ -89,6 +135,30 @@ export default function ChatArea({
 
       {activeChannel && (
         <div className="p-4">
+
+          {replyingTo && (
+            <div className="mb-2 bg-gray-600 rounded p-2 text-sm">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-indigo-400">
+                    Replying to {replyingTo.user.displayName}
+                  </p>
+
+                  <p className="text-gray-300 truncate">
+                    {replyingTo.content || "📷 Image"}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setReplyingTo(null)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-2 items-center">
             <button
               type="button"

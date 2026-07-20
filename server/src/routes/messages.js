@@ -14,7 +14,17 @@ router.get('/:channelId',
                 include: {
                     user: {
                         select: { id: true, username: true, displayName: true }
-                    }
+                    },
+                    replyTo: {
+                        include: {
+                            user: {
+                                select: {
+                                    displayName: true,
+                                    username: true,
+                                }
+                            }
+                        }
+                    },
                 }
             })
             res.json(messages);

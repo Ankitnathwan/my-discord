@@ -66,7 +66,7 @@ io.on('connection', (socket) => {
     socket.to(channelId).emit("user_stop_typing", user);
   });
 
-  socket.on("send_message", async ({ channelId, content, imageUrl, userId }) => {
+  socket.on("send_message", async ({ channelId, content, imageUrl, userId, replyToId,}) => {
     try {
       if (!content?.trim() && !imageUrl) {
         return;
@@ -78,6 +78,7 @@ io.on('connection', (socket) => {
           userId,
           content: content?.trim() || "",
           imageUrl,
+          replyToId,
         },
         include: {
           user: {
@@ -87,6 +88,16 @@ io.on('connection', (socket) => {
               displayName: true,
             },
           },
+          replyTo: {
+            include: {
+              user: {
+                select: {
+                  displayName: true,
+                  username: true,
+                }
+              }
+            }
+          }
         },
       });
 
